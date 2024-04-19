@@ -20,6 +20,8 @@ jobs:
           node-version: "20"
       - name: Install dependencies
         run: npm install
+        run: echo "TESTING"
+        run: echo ${{secrets.SONAR_TOKEN}}
       - name: Static Code Analyasis using SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
