@@ -1,4 +1,4 @@
-name: Scalable API prject with Node.js
+name: Scalable API project with Node.js
 
 on:
   push:
@@ -9,19 +9,50 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and Analyze
+  build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out repository
+        uses: actions/checkout@v2
+
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: "20"
+
       - name: Install dependencies
         run: npm install
-      - name: Static Code Analyasis using SonarCloud
+
+      - name: Static Code Analysis using SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Stop PM2 process
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: pm2 stop index || true # '|| true' ensures that the workflow doesn't fail if the process isn't found
+
+      - name: Transfer files to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "./*" # Specify directories or files to copy
+          target: "/home/ubuntu/app"
+
+      - name: Install production dependencies and restart PM2 process
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app
+            pm2 start index.js
