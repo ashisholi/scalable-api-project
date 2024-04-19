@@ -1,4 +1,4 @@
-name: Node.js CI with SonarCloud
+name: Scalable API prject with Node.js
 
 on:
   push:
@@ -17,11 +17,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "14" # Set this to the Node.js version you're using
+          node-version: "20"
       - name: Install dependencies
         run: npm install
       - name: Static Code Analyasis using SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Provided by Actions, do not need to change
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_API }} # Set this to your SonarCloud token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
